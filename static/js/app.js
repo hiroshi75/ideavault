@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'note-card bg-white p-4 rounded-lg shadow-md mb-4';
         card.innerHTML = `
             <h3 class="text-xl font-semibold mb-2">${note.title}</h3>
-            <div class="note-content mb-2">${note.content.replace(/<p><br><\/p>$/, '')}</div>
+            <div class="note-content mb-2">${note.content.replace(/\n/g, '<br>')}</div>
             <div class="flex flex-wrap mb-2">
                 ${note.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
             </div>
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function editNote(note) {
         currentNoteId = note.id;
         noteTitle.value = note.title;
-        quill.root.innerHTML = note.content;
+        quill.root.innerHTML = note.content.replace(/\n/g, '<br>');
         noteTags.value = note.tags.join(', ');
         submitBtn.textContent = 'Update Note';
     }
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     noteForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const title = noteTitle.value;
-        const content = quill.root.innerHTML.replace(/<p><br><\/p>$/, '');
+        const content = quill.root.innerHTML.replace(/<p><br><\/p>$/, '').replace(/<br>/g, '\n');
         const tags = noteTags.value.split(',').map(tag => tag.trim());
 
         const noteData = { title, content, tags };
