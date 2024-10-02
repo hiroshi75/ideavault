@@ -216,22 +216,34 @@ document.addEventListener('DOMContentLoaded', () => {
         quill.root.innerHTML = '';
     });
 
+    let debounceTimer;
     searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const noteCards = noteList.querySelectorAll('.note-card');
-
-        noteCards.forEach(card => {
-            const title = card.querySelector('h3').textContent.toLowerCase();
-            const content = card.querySelector('.note-content').textContent.toLowerCase();
-            const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent.toLowerCase());
-
-            if (title.includes(searchTerm) || content.includes(searchTerm) || tags.some(tag => tag.includes(searchTerm))) {
-                card.style.display = 'block';
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const searchTerm = e.target.value.trim();
+            if (searchTerm.length > 0) {
+                searchNotes(searchTerm);
             } else {
-                card.style.display = 'none';
+                fetchNotes();
             }
-        });
+        }, 300);
     });
+
+    function searchNotes(query) {
+        fetch(`/api/search?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                noteList.innerHTML = '';
+                data.forEach(note => {
+                    const noteCard = createNoteCard(note);
+                    noteList.appendChild(noteCard);
+                });
+            })
+            .catch(error => {
+                console.error('Error searching notes:', error);
+                noteList.innerHTML = '<p>Error searching notes. Please try again later.</p>';
+            });
+    }
 
     showLoginForm();
 });

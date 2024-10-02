@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, render_template, session
 from models import db, Note, Tag, User
 from werkzeug.security import generate_password_hash, check_password_hash
 from bleach import clean
+from sqlalchemy import or_
 
 main = Blueprint('main', __name__)
 
@@ -115,3 +116,23 @@ def get_tags():
         return jsonify({'error': 'Unauthorized'}), 401
     tags = Tag.query.join(Tag.notes).filter(Note.user_id == session['user_id']).all()
     return jsonify([tag.to_dict() for tag in tags])
+
+@main.route('/api/search', methods=['GET'])
+def search_notes():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify([])
+    
+    notes = Note.query.filter(
+        Note.user_id == session['user_id'],
+        or_(
+            Note.title.ilike(f'%{query}%'),
+            Note.content.ilike(f'%{query}%'),
+            Note.tags.any(Tag.name.ilike(f'%{query}%'))
+        )
+    ).all()
+    
+    return jsonify([note.to_dict() for note in notes])
