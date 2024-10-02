@@ -1,0 +1,120 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const noteList = document.getElementById('note-list');
+    const noteForm = document.getElementById('note-form');
+    const noteTitle = document.getElementById('note-title');
+    const noteContent = document.getElementById('note-content');
+    const noteTags = document.getElementById('note-tags');
+    const submitBtn = document.getElementById('submit-btn');
+    const searchInput = document.getElementById('search-input');
+
+    let currentNoteId = null;
+
+    function fetchNotes() {
+        fetch('/api/notes')
+            .then(response => response.json())
+            .then(notes => {
+                noteList.innerHTML = '';
+                notes.forEach(note => {
+                    const noteCard = createNoteCard(note);
+                    noteList.appendChild(noteCard);
+                });
+            });
+    }
+
+    function createNoteCard(note) {
+        const card = document.createElement('div');
+        card.className = 'note-card bg-white p-4 rounded-lg shadow-md mb-4';
+        card.innerHTML = `
+            <h3 class="text-xl font-semibold mb-2">${note.title}</h3>
+            <p class="text-gray-600 mb-2">${note.content}</p>
+            <div class="flex flex-wrap mb-2">
+                ${note.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            </div>
+            <div class="flex justify-between text-sm text-gray-500">
+                <span>Created: ${new Date(note.created_at).toLocaleString()}</span>
+                <span>Updated: ${new Date(note.updated_at).toLocaleString()}</span>
+            </div>
+            <div class="mt-4">
+                <button class="edit-btn bg-blue-500 text-white px-3 py-1 rounded mr-2">Edit</button>
+                <button class="delete-btn bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+            </div>
+        `;
+
+        const editBtn = card.querySelector('.edit-btn');
+        editBtn.addEventListener('click', () => editNote(note));
+
+        const deleteBtn = card.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', () => deleteNote(note.id));
+
+        return card;
+    }
+
+    function editNote(note) {
+        currentNoteId = note.id;
+        noteTitle.value = note.title;
+        noteContent.value = note.content;
+        noteTags.value = note.tags.join(', ');
+        submitBtn.textContent = 'Update Note';
+    }
+
+    function deleteNote(noteId) {
+        if (confirm('Are you sure you want to delete this note?')) {
+            fetch(`/api/notes/${noteId}`, { method: 'DELETE' })
+                .then(() => {
+                    fetchNotes();
+                });
+        }
+    }
+
+    noteForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = noteTitle.value;
+        const content = noteContent.value;
+        const tags = noteTags.value.split(',').map(tag => tag.trim());
+
+        const noteData = { title, content, tags };
+
+        if (currentNoteId) {
+            // Update existing note
+            fetch(`/api/notes/${currentNoteId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(noteData)
+            }).then(() => {
+                currentNoteId = null;
+                submitBtn.textContent = 'Add Note';
+                fetchNotes();
+            });
+        } else {
+            // Create new note
+            fetch('/api/notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(noteData)
+            }).then(() => {
+                fetchNotes();
+            });
+        }
+
+        noteForm.reset();
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const noteCards = noteList.querySelectorAll('.note-card');
+
+        noteCards.forEach(card => {
+            const title = card.querySelector('h3').textContent.toLowerCase();
+            const content = card.querySelector('p').textContent.toLowerCase();
+            const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent.toLowerCase());
+
+            if (title.includes(searchTerm) || content.includes(searchTerm) || tags.some(tag => tag.includes(searchTerm))) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+
+    fetchNotes();
+});

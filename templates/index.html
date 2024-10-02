@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idea Note-Taking App</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Idea Note-Taking App</h1>
+        
+        <div class="mb-8">
+            <input type="text" id="search-input" placeholder="Search notes..." class="w-full p-2 rounded border border-gray-300">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <h2 class="text-2xl font-semibold mb-4">Add/Edit Note</h2>
+                <form id="note-form" class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="mb-4">
+                        <label for="note-title" class="block text-gray-700 font-bold mb-2">Title</label>
+                        <input type="text" id="note-title" required class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                    <div class="mb-4">
+                        <label for="note-content" class="block text-gray-700 font-bold mb-2">Content</label>
+                        <textarea id="note-content" required class="w-full p-2 border border-gray-300 rounded" rows="4"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="note-tags" class="block text-gray-700 font-bold mb-2">Tags (comma-separated)</label>
+                        <input type="text" id="note-tags" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                    <button type="submit" id="submit-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Note</button>
+                </form>
+            </div>
+            <div>
+                <h2 class="text-2xl font-semibold mb-4">Notes</h2>
+                <div id="note-list"></div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
