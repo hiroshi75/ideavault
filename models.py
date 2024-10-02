@@ -11,8 +11,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256))  # Increased length to 256
+    password_hash = db.Column(db.String(256))
     notes = db.relationship('Note', backref='author', lazy='dynamic')
+    shared_notes = db.relationship('Note', secondary='shared_notes', backref=db.backref('shared_with', lazy='dynamic'))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -44,7 +45,8 @@ class Note(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
             'tags': [tag.name for tag in self.tags],
-            'user_id': self.user_id
+            'user_id': self.user_id,
+            'shared_with': [user.username for user in self.shared_with]
         }
 
 class Tag(db.Model):
@@ -56,3 +58,9 @@ class Tag(db.Model):
             'id': self.id,
             'name': self.name
         }
+
+class SharedNotes(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    note_id = db.Column(db.Integer, db.ForeignKey('note.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -170,8 +170,14 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="mt-4">
                 <button class="edit-btn bg-blue-500 text-white px-3 py-1 rounded mr-2">Edit</button>
-                <button class="delete-btn bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+                <button class="delete-btn bg-red-500 text-white px-3 py-1 rounded mr-2">Delete</button>
+                <button class="share-btn bg-green-500 text-white px-3 py-1 rounded">Share</button>
             </div>
+            ${note.shared_with.length > 0 ? `
+            <div class="mt-2 text-sm text-gray-500">
+                Shared with: ${note.shared_with.join(', ')}
+            </div>
+            ` : ''}
         `;
 
         const editBtn = card.querySelector('.edit-btn');
@@ -179,6 +185,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const deleteBtn = card.querySelector('.delete-btn');
         deleteBtn.addEventListener('click', () => deleteNote(note.id));
+
+        const shareBtn = card.querySelector('.share-btn');
+        shareBtn.addEventListener('click', () => showShareModal(note));
 
         return card;
     }
@@ -199,6 +208,99 @@ document.addEventListener('DOMContentLoaded', () => {
                     fetchNotes();
                 });
         }
+    }
+
+    function showShareModal(note) {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full';
+        modal.innerHTML = `
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-bold mb-4">Share Note</h3>
+                <input type="text" id="share-username" placeholder="Enter username" class="w-full p-2 mb-4 border rounded">
+                <button id="share-submit" class="bg-blue-500 text-white px-4 py-2 rounded">Share</button>
+                <button id="close-modal" class="ml-2 text-gray-500">Cancel</button>
+                <div id="shared-users-list" class="mt-4"></div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const shareSubmit = document.getElementById('share-submit');
+        const closeModal = document.getElementById('close-modal');
+        const sharedUsersList = document.getElementById('shared-users-list');
+
+        function updateSharedUsersList() {
+            fetch(`/api/shared_users/${note.id}`)
+                .then(response => response.json())
+                .then(users => {
+                    sharedUsersList.innerHTML = '<h4 class="font-bold mb-2">Shared with:</h4>';
+                    users.forEach(user => {
+                        const userItem = document.createElement('div');
+                        userItem.className = 'flex justify-between items-center mb-2';
+                        userItem.innerHTML = `
+                            <span>${user.username}</span>
+                            <button class="unshare-btn text-red-500" data-username="${user.username}">Unshare</button>
+                        `;
+                        sharedUsersList.appendChild(userItem);
+                    });
+
+                    const unshareButtons = sharedUsersList.querySelectorAll('.unshare-btn');
+                    unshareButtons.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const username = btn.getAttribute('data-username');
+                            unshareNote(note.id, username).then(updateSharedUsersList);
+                        });
+                    });
+                });
+        }
+
+        updateSharedUsersList();
+
+        shareSubmit.addEventListener('click', () => {
+            const username = document.getElementById('share-username').value;
+            shareNote(note.id, username).then(() => {
+                document.getElementById('share-username').value = '';
+                updateSharedUsersList();
+            });
+        });
+
+        closeModal.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+    }
+
+    function shareNote(noteId, username) {
+        return fetch(`/api/notes/${noteId}/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('Note shared successfully');
+                fetchNotes();
+            }
+        });
+    }
+
+    function unshareNote(noteId, username) {
+        return fetch(`/api/notes/${noteId}/unshare`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('Note unshared successfully');
+                fetchNotes();
+            }
+        });
     }
 
     noteForm.addEventListener('submit', (e) => {

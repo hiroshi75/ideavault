@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, render_template, session
-from models import db, Note, Tag, User
+from models import db, Note, Tag, User, SharedNotes
 from werkzeug.security import generate_password_hash, check_password_hash
 from bleach import clean
 from sqlalchemy import or_
@@ -43,8 +43,11 @@ def logout():
 def get_notes():
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    notes = Note.query.filter_by(user_id=session['user_id']).all()
-    return jsonify([note.to_dict() for note in notes])
+    user = User.query.get(session['user_id'])
+    owned_notes = Note.query.filter_by(user_id=session['user_id']).all()
+    shared_notes = user.shared_notes
+    all_notes = owned_notes + shared_notes
+    return jsonify([note.to_dict() for note in all_notes])
 
 @main.route('/api/notes', methods=['POST'])
 def create_note():
@@ -73,7 +76,7 @@ def get_note(note_id):
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     note = Note.query.get_or_404(note_id)
-    if note.user_id != session['user_id']:
+    if note.user_id != session['user_id'] and session['user_id'] not in [user.id for user in note.shared_with]:
         return jsonify({'error': 'Unauthorized'}), 401
     return jsonify(note.to_dict())
 
@@ -126,7 +129,8 @@ def search_notes():
     if not query:
         return jsonify([])
     
-    notes = Note.query.filter(
+    user = User.query.get(session['user_id'])
+    owned_notes = Note.query.filter(
         Note.user_id == session['user_id'],
         or_(
             Note.title.ilike(f'%{query}%'),
@@ -135,4 +139,80 @@ def search_notes():
         )
     ).all()
     
-    return jsonify([note.to_dict() for note in notes])
+    shared_notes = Note.query.filter(
+        Note.shared_with.contains(user),
+        or_(
+            Note.title.ilike(f'%{query}%'),
+            Note.content.ilike(f'%{query}%'),
+            Note.tags.any(Tag.name.ilike(f'%{query}%'))
+        )
+    ).all()
+    
+    all_notes = owned_notes + shared_notes
+    return jsonify([note.to_dict() for note in all_notes])
+
+@main.route('/api/notes/<int:note_id>/share', methods=['POST'])
+def share_note(note_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    note = Note.query.get_or_404(note_id)
+    if note.user_id != session['user_id']:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    username = data.get('username')
+    if not username:
+        return jsonify({'error': 'Username is required'}), 400
+    
+    user_to_share = User.query.filter_by(username=username).first()
+    if not user_to_share:
+        return jsonify({'error': 'User not found'}), 404
+    
+    if user_to_share.id == session['user_id']:
+        return jsonify({'error': 'Cannot share note with yourself'}), 400
+    
+    if user_to_share in note.shared_with:
+        return jsonify({'error': 'Note already shared with this user'}), 400
+    
+    shared_note = SharedNotes(note_id=note.id, user_id=user_to_share.id)
+    db.session.add(shared_note)
+    db.session.commit()
+    
+    return jsonify({'message': 'Note shared successfully'}), 200
+
+@main.route('/api/notes/<int:note_id>/unshare', methods=['POST'])
+def unshare_note(note_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    note = Note.query.get_or_404(note_id)
+    if note.user_id != session['user_id']:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    username = data.get('username')
+    if not username:
+        return jsonify({'error': 'Username is required'}), 400
+    
+    user_to_unshare = User.query.filter_by(username=username).first()
+    if not user_to_unshare:
+        return jsonify({'error': 'User not found'}), 404
+    
+    shared_note = SharedNotes.query.filter_by(note_id=note.id, user_id=user_to_unshare.id).first()
+    if not shared_note:
+        return jsonify({'error': 'Note is not shared with this user'}), 400
+    
+    db.session.delete(shared_note)
+    db.session.commit()
+    
+    return jsonify({'message': 'Note unshared successfully'}), 200
+
+@main.route('/api/shared_users/<int:note_id>', methods=['GET'])
+def get_shared_users(note_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    note = Note.query.get_or_404(note_id)
+    if note.user_id != session['user_id']:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    shared_users = [user.to_dict() for user in note.shared_with]
+    return jsonify(shared_users), 200
