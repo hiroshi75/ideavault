@@ -104,12 +104,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isLoggedIn) return;
         fetch('/api/notes')
             .then(response => response.json())
-            .then(notes => {
+            .then(data => {
+                const notes = Array.isArray(data) ? data : [];
                 noteList.innerHTML = '';
                 notes.forEach(note => {
                     const noteCard = createNoteCard(note);
                     noteList.appendChild(noteCard);
                 });
+            })
+            .catch(error => {
+                console.error('Error fetching notes:', error);
+                noteList.innerHTML = '<p>Error fetching notes. Please try again later.</p>';
             });
     }
 
