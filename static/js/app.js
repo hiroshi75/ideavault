@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let quill;
 
     function initQuill() {
+        if (quill) {
+            quill.destroy();
+        }
         quill = new Quill('#note-content', {
             theme: 'snow',
             modules: {
@@ -65,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
         appContainer.style.display = 'block';
         loggedInUsername.textContent = username;
         isLoggedIn = true;
-        initQuill();
         showNoteList();
         fetchNotes();
     }
@@ -78,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showNoteForm() {
         noteListSection.style.display = 'none';
         noteFormSection.style.display = 'block';
+        initQuill();
     }
 
     toggleAuth.addEventListener('click', () => {
@@ -183,10 +186,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function editNote(note) {
         currentNoteId = note.id;
         noteTitle.value = note.title;
+        showNoteForm();
         quill.root.innerHTML = note.content.replace(/\n/g, '<br>');
         noteTags.value = note.tags.join(', ');
         submitBtn.textContent = 'Update Note';
-        showNoteForm();
     }
 
     function deleteNote(noteId) {
@@ -266,9 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
     newNoteBtn.addEventListener('click', () => {
         currentNoteId = null;
         noteForm.reset();
+        showNoteForm();
         quill.root.innerHTML = '';
         submitBtn.textContent = 'Add Note';
-        showNoteForm();
     });
 
     backToListBtn.addEventListener('click', () => {
