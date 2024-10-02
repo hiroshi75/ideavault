@@ -76,3 +76,28 @@ body {
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+.user-info {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.user-info span {
+    margin-right: 0.5rem;
+}
+
+.logout-btn {
+    background-color: transparent;
+    border: none;
+    color: #4a5568;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.logout-btn:hover {
+    color: #2d3748;
+}

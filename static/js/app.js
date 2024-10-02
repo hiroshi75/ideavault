@@ -64,12 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showUserInfo(username) {
         loginRegisterForm.style.display = 'none';
-        userInfo.style.display = 'block';
+        userInfo.style.display = 'flex';
         appContainer.style.display = 'block';
         loggedInUsername.textContent = username;
         isLoggedIn = true;
         showNoteList();
         fetchNotes();
+        feather.replace();
     }
 
     function showNoteList() {

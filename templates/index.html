@@ -32,9 +32,11 @@
                     <button type="button" id="toggle-auth" class="w-full mt-2 text-blue-500 hover:text-blue-700 transition duration-300">Register</button>
                 </form>
             </div>
-            <div id="user-info" class="hidden bg-white p-6 rounded-lg shadow-md mb-4 max-w-md mx-auto">
-                <p class="text-center mb-2">Welcome, <span id="logged-in-username" class="font-semibold"></span>!</p>
-                <button id="logout-btn" class="w-full bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300">Logout</button>
+            <div id='user-info' class='hidden user-info'>
+                <span>Welcome, <span id='logged-in-username' class='font-semibold'></span></span>
+                <button id='logout-btn' class='logout-btn' title='Logout'>
+                    <i data-feather='log-out'></i>
+                </button>
             </div>
         </div>
 
