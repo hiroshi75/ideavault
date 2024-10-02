@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, render_template, session
 from models import db, Note, Tag, User
 from werkzeug.security import generate_password_hash, check_password_hash
+from bleach import clean
 
 main = Blueprint('main', __name__)
 
@@ -49,7 +50,11 @@ def create_note():
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     data = request.json
-    new_note = Note(title=data['title'], content=data['content'], user_id=session['user_id'])
+    new_note = Note(
+        title=data['title'],
+        content=clean(data['content'], tags=['p', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'blockquote', 'ol', 'ul', 'li', 'a'], attributes={'a': ['href']}),
+        user_id=session['user_id']
+    )
     
     for tag_name in data.get('tags', []):
         tag = Tag.query.filter_by(name=tag_name).first()
@@ -80,7 +85,7 @@ def update_note(note_id):
         return jsonify({'error': 'Unauthorized'}), 401
     data = request.json
     note.title = data['title']
-    note.content = data['content']
+    note.content = clean(data['content'], tags=['p', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'blockquote', 'ol', 'ul', 'li', 'a'], attributes={'a': ['href']})
     
     note.tags.clear()
     for tag_name in data.get('tags', []):

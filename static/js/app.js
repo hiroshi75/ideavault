@@ -12,13 +12,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteList = document.getElementById('note-list');
     const noteForm = document.getElementById('note-form');
     const noteTitle = document.getElementById('note-title');
-    const noteContent = document.getElementById('note-content');
     const noteTags = document.getElementById('note-tags');
     const submitBtn = document.getElementById('submit-btn');
     const searchInput = document.getElementById('search-input');
 
     let currentNoteId = null;
     let isLoggedIn = false;
+    let quill;
+
+    function initQuill() {
+        quill = new Quill('#note-content', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+    }
 
     function showLoginForm() {
         loginRegisterForm.style.display = 'block';
@@ -44,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appContainer.style.display = 'block';
         loggedInUsername.textContent = username;
         isLoggedIn = true;
+        initQuill();
         fetchNotes();
     }
 
@@ -123,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'note-card bg-white p-4 rounded-lg shadow-md mb-4';
         card.innerHTML = `
             <h3 class="text-xl font-semibold mb-2">${note.title}</h3>
-            <p class="text-gray-600 mb-2">${note.content}</p>
+            <div class="note-content mb-2">${note.content}</div>
             <div class="flex flex-wrap mb-2">
                 ${note.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
             </div>
@@ -149,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function editNote(note) {
         currentNoteId = note.id;
         noteTitle.value = note.title;
-        noteContent.value = note.content;
+        quill.root.innerHTML = note.content;
         noteTags.value = note.tags.join(', ');
         submitBtn.textContent = 'Update Note';
     }
@@ -166,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     noteForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const title = noteTitle.value;
-        const content = noteContent.value;
+        const content = quill.root.innerHTML;
         const tags = noteTags.value.split(',').map(tag => tag.trim());
 
         const noteData = { title, content, tags };
@@ -194,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         noteForm.reset();
+        quill.root.innerHTML = '';
     });
 
     searchInput.addEventListener('input', (e) => {
@@ -202,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         noteCards.forEach(card => {
             const title = card.querySelector('h3').textContent.toLowerCase();
-            const content = card.querySelector('p').textContent.toLowerCase();
+            const content = card.querySelector('.note-content').textContent.toLowerCase();
             const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent.toLowerCase());
 
             if (title.includes(searchTerm) || content.includes(searchTerm) || tags.some(tag => tag.includes(searchTerm))) {
