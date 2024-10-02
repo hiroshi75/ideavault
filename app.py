@@ -1,12 +1,14 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from sqlalchemy.orm import DeclarativeBase
 
 class Base(DeclarativeBase):
     pass
 
 db = SQLAlchemy(model_class=Base)
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='/static')
@@ -16,10 +18,10 @@ def create_app():
     app.config['SESSION_TYPE'] = 'filesystem'
 
     db.init_app(app)
+    migrate.init_app(app, db)
 
     with app.app_context():
         from models import Note, Tag, User
-        db.create_all()
 
     from routes import main as main_blueprint
     app.register_blueprint(main_blueprint)
