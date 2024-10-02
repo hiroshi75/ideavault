@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     ['link', 'image'],
                     ['clean']
                 ]
-            }
+            },
+            bounds: '#note-content'
         });
     }
 
