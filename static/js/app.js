@@ -124,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 const notes = Array.isArray(data) ? data : [];
+                notes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort notes by creation date, newest first
                 noteList.innerHTML = '';
                 notes.forEach(note => {
                     const noteCard = createNoteCard(note);
