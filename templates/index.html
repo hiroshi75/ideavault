@@ -38,33 +38,34 @@
         </div>
 
         <div id="app-container" class="hidden">
-            <div class="mb-8">
-                <input type="text" id="search-input" placeholder="Search notes..." class="w-full p-2 rounded border border-gray-300">
+            <div id="note-list-section" class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <input type="text" id="search-input" placeholder="Search notes..." class="w-3/4 p-2 rounded border border-gray-300">
+                    <button id="new-note-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">New Note</button>
+                </div>
+                <div id="note-list"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <h2 class="text-2xl font-semibold mb-4">Add/Edit Note</h2>
-                    <form id="note-form" class="bg-white p-6 rounded-lg shadow-md">
-                        <div class="mb-4">
-                            <label for="note-title" class="block text-gray-700 font-bold mb-2">Title</label>
-                            <input type="text" id="note-title" required class="w-full p-2 border border-gray-300 rounded">
-                        </div>
-                        <div class="mb-4">
-                            <label for="note-content" class="block text-gray-700 font-bold mb-2">Content</label>
-                            <div id="note-content" class="h-64 border border-gray-300 rounded"></div>
-                        </div>
-                        <div class="mb-4">
-                            <label for="note-tags" class="block text-gray-700 font-bold mb-2">Tags (comma-separated)</label>
-                            <input type="text" id="note-tags" class="w-full p-2 border border-gray-300 rounded">
-                        </div>
+            <div id="note-form-section" class="hidden">
+                <h2 class="text-2xl font-semibold mb-4">Add/Edit Note</h2>
+                <form id="note-form" class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="mb-4">
+                        <label for="note-title" class="block text-gray-700 font-bold mb-2">Title</label>
+                        <input type="text" id="note-title" required class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                    <div class="mb-4">
+                        <label for="note-content" class="block text-gray-700 font-bold mb-2">Content</label>
+                        <div id="note-content" class="h-64 border border-gray-300 rounded"></div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="note-tags" class="block text-gray-700 font-bold mb-2">Tags (comma-separated)</label>
+                        <input type="text" id="note-tags" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                    <div class="flex justify-between">
                         <button type="submit" id="submit-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Note</button>
-                    </form>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-semibold mb-4">Notes</h2>
-                    <div id="note-list"></div>
-                </div>
+                        <button type="button" id="back-to-list-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Back to List</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -9,12 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginRegisterForm = document.getElementById('login-register-form');
     const appContainer = document.getElementById('app-container');
 
+    const noteListSection = document.getElementById('note-list-section');
+    const noteFormSection = document.getElementById('note-form-section');
     const noteList = document.getElementById('note-list');
     const noteForm = document.getElementById('note-form');
     const noteTitle = document.getElementById('note-title');
     const noteTags = document.getElementById('note-tags');
     const submitBtn = document.getElementById('submit-btn');
     const searchInput = document.getElementById('search-input');
+    const newNoteBtn = document.getElementById('new-note-btn');
+    const backToListBtn = document.getElementById('back-to-list-btn');
 
     let currentNoteId = null;
     let isLoggedIn = false;
@@ -62,7 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
         loggedInUsername.textContent = username;
         isLoggedIn = true;
         initQuill();
+        showNoteList();
         fetchNotes();
+    }
+
+    function showNoteList() {
+        noteListSection.style.display = 'block';
+        noteFormSection.style.display = 'none';
+    }
+
+    function showNoteForm() {
+        noteListSection.style.display = 'none';
+        noteFormSection.style.display = 'block';
     }
 
     toggleAuth.addEventListener('click', () => {
@@ -124,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 const notes = Array.isArray(data) ? data : [];
-                notes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort notes by creation date, newest first
+                notes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                 noteList.innerHTML = '';
                 notes.forEach(note => {
                     const noteCard = createNoteCard(note);
@@ -171,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         quill.root.innerHTML = note.content.replace(/\n/g, '<br>');
         noteTags.value = note.tags.join(', ');
         submitBtn.textContent = 'Update Note';
+        showNoteForm();
     }
 
     function deleteNote(noteId) {
@@ -199,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }).then(() => {
                 currentNoteId = null;
                 submitBtn.textContent = 'Add Note';
+                showNoteList();
                 fetchNotes();
             });
         } else {
@@ -208,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(noteData)
             }).then(() => {
+                showNoteList();
                 fetchNotes();
             });
         }
@@ -244,6 +262,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 noteList.innerHTML = '<p>Error searching notes. Please try again later.</p>';
             });
     }
+
+    newNoteBtn.addEventListener('click', () => {
+        currentNoteId = null;
+        noteForm.reset();
+        quill.root.innerHTML = '';
+        submitBtn.textContent = 'Add Note';
+        showNoteForm();
+    });
+
+    backToListBtn.addEventListener('click', () => {
+        showNoteList();
+        fetchNotes();
+    });
 
     showLoginForm();
 });
