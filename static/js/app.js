@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const authForm = document.getElementById('auth-form');
+    const authSubmit = document.getElementById('auth-submit');
+    const toggleAuth = document.getElementById('toggle-auth');
+    const emailContainer = document.getElementById('email-container');
+    const logoutBtn = document.getElementById('logout-btn');
+    const userInfo = document.getElementById('user-info');
+    const loggedInUsername = document.getElementById('logged-in-username');
+    const loginRegisterForm = document.getElementById('login-register-form');
+    const appContainer = document.getElementById('app-container');
+
     const noteList = document.getElementById('note-list');
     const noteForm = document.getElementById('note-form');
     const noteTitle = document.getElementById('note-title');
@@ -8,8 +18,90 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
 
     let currentNoteId = null;
+    let isLoggedIn = false;
+
+    function showLoginForm() {
+        loginRegisterForm.style.display = 'block';
+        userInfo.style.display = 'none';
+        appContainer.style.display = 'none';
+        authSubmit.textContent = 'Login';
+        emailContainer.style.display = 'none';
+        toggleAuth.textContent = 'Register';
+    }
+
+    function showRegisterForm() {
+        loginRegisterForm.style.display = 'block';
+        userInfo.style.display = 'none';
+        appContainer.style.display = 'none';
+        authSubmit.textContent = 'Register';
+        emailContainer.style.display = 'block';
+        toggleAuth.textContent = 'Login';
+    }
+
+    function showUserInfo(username) {
+        loginRegisterForm.style.display = 'none';
+        userInfo.style.display = 'block';
+        appContainer.style.display = 'block';
+        loggedInUsername.textContent = username;
+        isLoggedIn = true;
+        fetchNotes();
+    }
+
+    toggleAuth.addEventListener('click', () => {
+        if (authSubmit.textContent === 'Login') {
+            showRegisterForm();
+        } else {
+            showLoginForm();
+        }
+    });
+
+    authForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const email = document.getElementById('email').value;
+
+        if (authSubmit.textContent === 'Login') {
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    showUserInfo(data.username);
+                }
+            });
+        } else {
+            fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    showUserInfo(data.username);
+                }
+            });
+        }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+        fetch('/api/logout', { method: 'POST' })
+        .then(() => {
+            isLoggedIn = false;
+            showLoginForm();
+        });
+    });
 
     function fetchNotes() {
+        if (!isLoggedIn) return;
         fetch('/api/notes')
             .then(response => response.json())
             .then(notes => {
@@ -116,5 +208,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    fetchNotes();
+    showLoginForm();
 });
