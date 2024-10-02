@@ -106,9 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    alert(data.error);
+                    showToast(data.error, 'error');
                 } else {
                     showUserInfo(data.username);
+                    showToast('Logged in successfully', 'success');
                 }
             });
         } else {
@@ -120,9 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    alert(data.error);
+                    showToast(data.error, 'error');
                 } else {
                     showUserInfo(data.username);
+                    showToast('Registered successfully', 'success');
                 }
             });
         }
@@ -133,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(() => {
             isLoggedIn = false;
             showLoginForm();
+            showToast('Logged out successfully', 'success');
         });
     });
 
@@ -151,16 +154,16 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error('Error fetching notes:', error);
-                noteList.innerHTML = '<p>Error fetching notes. Please try again later.</p>';
+                noteList.innerHTML = '<p class="text-center text-red-500">Error fetching notes. Please try again later.</p>';
             });
     }
 
     function createNoteCard(note) {
         const card = document.createElement('div');
-        card.className = 'note-card bg-white p-4 rounded-lg shadow-md mb-4';
+        card.className = 'note-card bg-white p-4 rounded-lg shadow-md mb-4 relative overflow-hidden';
         card.innerHTML = `
             <h3 class="text-xl font-semibold mb-2">${note.title}</h3>
-            <div class="note-content mb-2">${note.content.replace(/\n/g, '<br>')}</div>
+            <div class="note-content mb-2 text-gray-600">${note.content.substring(0, 100)}${note.content.length > 100 ? '...' : ''}</div>
             <div class="flex flex-wrap mb-2">
                 ${note.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
             </div>
@@ -168,10 +171,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span>Created: ${new Date(note.created_at).toLocaleString()}</span>
                 <span>Updated: ${new Date(note.updated_at).toLocaleString()}</span>
             </div>
-            <div class="mt-4">
-                <button class="edit-btn bg-blue-500 text-white px-3 py-1 rounded mr-2">Edit</button>
-                <button class="delete-btn bg-red-500 text-white px-3 py-1 rounded mr-2">Delete</button>
-                <button class="share-btn bg-green-500 text-white px-3 py-1 rounded">Share</button>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button class="edit-btn text-blue-500 hover:text-blue-700" title="Edit"><i data-feather="edit-2"></i></button>
+                <button class="delete-btn text-red-500 hover:text-red-700" title="Delete"><i data-feather="trash-2"></i></button>
+                <button class="share-btn text-green-500 hover:text-green-700" title="Share"><i data-feather="share-2"></i></button>
             </div>
             ${note.shared_with.length > 0 ? `
             <div class="mt-2 text-sm text-gray-500">
@@ -189,6 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const shareBtn = card.querySelector('.share-btn');
         shareBtn.addEventListener('click', () => showShareModal(note));
 
+        feather.replace();
+
         return card;
     }
 
@@ -196,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentNoteId = note.id;
         noteTitle.value = note.title;
         showNoteForm();
-        quill.root.innerHTML = note.content.replace(/\n/g, '<br>');
+        quill.root.innerHTML = note.content;
         noteTags.value = note.tags.join(', ');
         submitBtn.textContent = 'Update Note';
     }
@@ -206,19 +211,20 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch(`/api/notes/${noteId}`, { method: 'DELETE' })
                 .then(() => {
                     fetchNotes();
+                    showToast('Note deleted successfully', 'success');
                 });
         }
     }
 
     function showShareModal(note) {
         const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full';
+        modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center modal';
         modal.innerHTML = `
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="relative p-5 border w-96 shadow-lg rounded-md bg-white modal-content">
                 <h3 class="text-lg font-bold mb-4">Share Note</h3>
-                <input type="text" id="share-username" placeholder="Enter username" class="w-full p-2 mb-4 border rounded">
-                <button id="share-submit" class="bg-blue-500 text-white px-4 py-2 rounded">Share</button>
-                <button id="close-modal" class="ml-2 text-gray-500">Cancel</button>
+                <input type="text" id="share-username" placeholder="Enter username" class="w-full p-2 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="share-submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Share</button>
+                <button id="close-modal" class="ml-2 text-gray-500 hover:text-gray-700 transition duration-300">Cancel</button>
                 <div id="shared-users-list" class="mt-4"></div>
             </div>
         `;
@@ -239,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         userItem.className = 'flex justify-between items-center mb-2';
                         userItem.innerHTML = `
                             <span>${user.username}</span>
-                            <button class="unshare-btn text-red-500" data-username="${user.username}">Unshare</button>
+                            <button class="unshare-btn text-red-500 hover:text-red-700" data-username="${user.username}">Unshare</button>
                         `;
                         sharedUsersList.appendChild(userItem);
                     });
@@ -267,6 +273,12 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal.addEventListener('click', () => {
             document.body.removeChild(modal);
         });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
     }
 
     function shareNote(noteId, username) {
@@ -278,9 +290,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                alert(data.error);
+                showToast(data.error, 'error');
             } else {
-                alert('Note shared successfully');
+                showToast('Note shared successfully', 'success');
                 fetchNotes();
             }
         });
@@ -295,9 +307,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                alert(data.error);
+                showToast(data.error, 'error');
             } else {
-                alert('Note unshared successfully');
+                showToast('Note unshared successfully', 'success');
                 fetchNotes();
             }
         });
@@ -306,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     noteForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const title = noteTitle.value;
-        const content = quill.root.innerHTML.replace(/<p><br><\/p>$/, '').replace(/<br>/g, '\n');
+        const content = quill.root.innerHTML;
         const tags = noteTags.value.split(',').map(tag => tag.trim());
 
         const noteData = { title, content, tags };
@@ -322,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = 'Add Note';
                 showNoteList();
                 fetchNotes();
+                showToast('Note updated successfully', 'success');
             });
         } else {
             // Create new note
@@ -332,6 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }).then(() => {
                 showNoteList();
                 fetchNotes();
+                showToast('Note added successfully', 'success');
             });
         }
 
@@ -364,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error('Error searching notes:', error);
-                noteList.innerHTML = '<p>Error searching notes. Please try again later.</p>';
+                noteList.innerHTML = '<p class="text-center text-red-500">Error searching notes. Please try again later.</p>';
             });
     }
 
@@ -380,6 +394,20 @@ document.addEventListener('DOMContentLoaded', () => {
         showNoteList();
         fetchNotes();
     });
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-md text-white ${type === 'error' ? 'bg-red-500' : 'bg-green-500'} transition-opacity duration-300`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 3000);
+    }
 
     showLoginForm();
 });

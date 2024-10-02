@@ -3,47 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Idea Note-Taking App</title>
+    <title>IdeaVault - Note-Taking App</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-8">Idea Note-Taking App</h1>
+        <h1 class="text-4xl font-bold mb-8 text-center text-blue-600">IdeaVault</h1>
         
         <div id="auth-container" class="mb-8">
-            <div id="login-register-form" class="bg-white p-6 rounded-lg shadow-md mb-4">
-                <h2 class="text-2xl font-semibold mb-4">Login / Register</h2>
+            <div id="login-register-form" class="bg-white p-6 rounded-lg shadow-md mb-4 max-w-md mx-auto">
+                <h2 class="text-2xl font-semibold mb-4 text-center">Login / Register</h2>
                 <form id="auth-form">
                     <div class="mb-4">
                         <label for="username" class="block text-gray-700 font-bold mb-2">Username</label>
-                        <input type="text" id="username" required class="w-full p-2 border border-gray-300 rounded">
+                        <input type="text" id="username" required class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="mb-4">
                         <label for="password" class="block text-gray-700 font-bold mb-2">Password</label>
-                        <input type="password" id="password" required class="w-full p-2 border border-gray-300 rounded">
+                        <input type="password" id="password" required class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div id="email-container" class="mb-4 hidden">
                         <label for="email" class="block text-gray-700 font-bold mb-2">Email</label>
-                        <input type="email" id="email" class="w-full p-2 border border-gray-300 rounded">
+                        <input type="email" id="email" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <button type="submit" id="auth-submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Login</button>
-                    <button type="button" id="toggle-auth" class="ml-2 text-blue-500 hover:text-blue-700">Register</button>
+                    <button type="submit" id="auth-submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Login</button>
+                    <button type="button" id="toggle-auth" class="w-full mt-2 text-blue-500 hover:text-blue-700 transition duration-300">Register</button>
                 </form>
             </div>
-            <div id="user-info" class="hidden bg-white p-6 rounded-lg shadow-md mb-4">
-                <p>Welcome, <span id="logged-in-username"></span>!</p>
-                <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 mt-2">Logout</button>
+            <div id="user-info" class="hidden bg-white p-6 rounded-lg shadow-md mb-4 max-w-md mx-auto">
+                <p class="text-center mb-2">Welcome, <span id="logged-in-username" class="font-semibold"></span>!</p>
+                <button id="logout-btn" class="w-full bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300">Logout</button>
             </div>
         </div>
 
         <div id="app-container" class="hidden">
             <div id="note-list-section" class="mb-8">
                 <div class="flex justify-between items-center mb-4">
-                    <input type="text" id="search-input" placeholder="Search notes..." class="w-3/4 p-2 rounded border border-gray-300">
-                    <button id="new-note-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">New Note</button>
+                    <div class="relative w-3/4">
+                        <input type="text" id="search-input" placeholder="Search notes..." class="w-full p-2 pl-10 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i data-feather="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <button id="new-note-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300 flex items-center">
+                        <i data-feather="plus" class="mr-2"></i> New Note
+                    </button>
                 </div>
-                <div id="note-list"></div>
+                <div id="note-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
 
             <div id="note-form-section" class="hidden">
@@ -51,7 +57,7 @@
                 <form id="note-form" class="bg-white p-6 rounded-lg shadow-md">
                     <div class="mb-4">
                         <label for="note-title" class="block text-gray-700 font-bold mb-2">Title</label>
-                        <input type="text" id="note-title" required class="w-full p-2 border border-gray-300 rounded">
+                        <input type="text" id="note-title" required class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="mb-4">
                         <label for="note-content" class="block text-gray-700 font-bold mb-2">Content</label>
@@ -59,11 +65,11 @@
                     </div>
                     <div class="mb-4">
                         <label for="note-tags" class="block text-gray-700 font-bold mb-2">Tags (comma-separated)</label>
-                        <input type="text" id="note-tags" class="w-full p-2 border border-gray-300 rounded">
+                        <input type="text" id="note-tags" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="flex justify-between">
-                        <button type="submit" id="submit-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Note</button>
-                        <button type="button" id="back-to-list-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Back to List</button>
+                        <button type="submit" id="submit-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Add Note</button>
+                        <button type="button" id="back-to-list-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition duration-300">Back to List</button>
                     </div>
                 </form>
             </div>
@@ -71,5 +77,8 @@
     </div>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="/static/js/app.js"></script>
+    <script>
+        feather.replace();
+    </script>
 </body>
 </html>
