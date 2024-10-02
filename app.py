@@ -12,12 +12,17 @@ migrate = Migrate()
 
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='/static')
-    database_url = os.environ.get("DATABASE_URL")
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"{database_url}?sslmode=require"
+    
+    # Use environment variables for database configuration
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    
+    # Ensure SSL mode is required for the database connection
+    if app.config["SQLALCHEMY_DATABASE_URI"].startswith("postgres://"):
+        app.config["SQLALCHEMY_DATABASE_URI"] = app.config["SQLALCHEMY_DATABASE_URI"].replace("postgres://", "postgresql://", 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] += "?sslmode=require"
+    
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SECRET_KEY"] = os.urandom(24)
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY") or os.urandom(24)
     app.config['SESSION_TYPE'] = 'filesystem'
 
     db.init_app(app)
